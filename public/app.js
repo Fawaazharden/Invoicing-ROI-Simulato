@@ -50,19 +50,26 @@ function formatCurrency(n) {
   return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(n || 0);
 }
 
+function valueClass(value) {
+  if (typeof value !== 'number') return '';
+  if (value > 0) return 'emph';
+  if (value === 0) return 'warn';
+  return 'danger';
+}
+
 function renderResults(data) {
   const r = data?.results || {};
   const b = data?.breakdown || {};
   resultsEl.innerHTML = `
     <div class="grid-3">
-      <div><div class="k">Labor cost (manual)</div><div class="v">${formatCurrency(b.labor_cost_manual)}</div></div>
-      <div><div class="k">Automation cost</div><div class="v">${formatCurrency(b.auto_cost)}</div></div>
-      <div><div class="k">Error savings</div><div class="v">${formatCurrency(b.error_savings)}</div></div>
-      <div><div class="k">Monthly savings</div><div class="v emph">${formatCurrency(r.monthly_savings)}</div></div>
-      <div><div class="k">Payback (months)</div><div class="v">${(r.payback_months || 0).toFixed(1)}</div></div>
-      <div><div class="k">ROI (%)</div><div class="v">${(r.roi_percentage || 0).toFixed(1)}%</div></div>
-      <div><div class="k">Cumulative savings</div><div class="v">${formatCurrency(r.cumulative_savings)}</div></div>
-      <div><div class="k">Net savings</div><div class="v">${formatCurrency(r.net_savings)}</div></div>
+      <div class="stat"><div class="k">Labor cost (manual)</div><div class="v ${valueClass(b.labor_cost_manual)}">${formatCurrency(b.labor_cost_manual)}</div></div>
+      <div class="stat"><div class="k">Automation cost</div><div class="v ${valueClass(-b.auto_cost)}">${formatCurrency(b.auto_cost)}</div></div>
+      <div class="stat"><div class="k">Error savings</div><div class="v ${valueClass(b.error_savings)}">${formatCurrency(b.error_savings)}</div></div>
+      <div class="stat"><div class="k">Monthly savings</div><div class="v ${valueClass(r.monthly_savings)}">${formatCurrency(r.monthly_savings)}</div></div>
+      <div class="stat"><div class="k">Payback (months)</div><div class="v ${valueClass(-r.payback_months)}">${(r.payback_months || 0).toFixed(1)}</div></div>
+      <div class="stat"><div class="k">ROI (%)</div><div class="v ${valueClass(r.roi_percentage)}">${(r.roi_percentage || 0).toFixed(1)}%</div></div>
+      <div class="stat"><div class="k">Cumulative savings</div><div class="v ${valueClass(r.cumulative_savings)}">${formatCurrency(r.cumulative_savings)}</div></div>
+      <div class="stat"><div class="k">Net savings</div><div class="v ${valueClass(r.net_savings)}">${formatCurrency(r.net_savings)}</div></div>
     </div>
   `;
 }
@@ -128,7 +135,12 @@ async function refreshScenarios() {
   scenarioListEl.innerHTML = '';
   data.forEach((row) => {
     const li = document.createElement('li');
+    const name = document.createElement('span');
+    name.className = 'name';
+    name.textContent = `${row.scenario_name || row.id}`;
+
     const btnLoad = document.createElement('button');
+    btnLoad.className = 'button outline';
     btnLoad.textContent = 'Load';
     btnLoad.addEventListener('click', async () => {
       const r = await fetch(`/scenarios/${row.id}`);
@@ -143,6 +155,7 @@ async function refreshScenarios() {
     });
 
     const btnDelete = document.createElement('button');
+    btnDelete.className = 'button ghost';
     btnDelete.textContent = 'Delete';
     btnDelete.addEventListener('click', async () => {
       if (!confirm('Delete this scenario?')) return;
@@ -151,8 +164,7 @@ async function refreshScenarios() {
       await refreshScenarios();
     });
 
-    li.textContent = `${row.scenario_name || row.id}`;
-    li.append(' ', btnLoad, ' ', btnDelete);
+    li.append(name, btnLoad, btnDelete);
     scenarioListEl.appendChild(li);
   });
 }

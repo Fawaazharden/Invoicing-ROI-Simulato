@@ -119,8 +119,14 @@ app.post('/report/generate', async (req, res) => {
   }
 });
 
-const port = Number(process.env.PORT || 3000);
-app.listen(port, () => {
-  // eslint-disable-next-line no-console
-  console.log(`Server running on http://localhost:${port}`);
-});
+// Export for Vercel serverless
+export default app;
+
+// Local development server
+if (process.env.NODE_ENV !== 'production') {
+  const port = Number(process.env.PORT || 3000);
+  app.listen(port, () => {
+    // eslint-disable-next-line no-console
+    console.log(`Server running on http://localhost:${port}`);
+  });
+}

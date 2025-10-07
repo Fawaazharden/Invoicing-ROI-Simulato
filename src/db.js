@@ -6,11 +6,29 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const dataDirectory = process.env.DATA_DIR || path.join(__dirname, '..', 'data');
+// Vercel serverless has read-only filesystem except /tmp
+const isVercel = process.env.VERCEL === '1';
+const dataDirectory = isVercel ? '/tmp' : (process.env.DATA_DIR || path.join(__dirname, '..', 'data'));
 const dbFilePath = path.join(dataDirectory, 'scenarios.json');
 const tempFilePath = path.join(dataDirectory, 'scenarios.tmp.json');
 
+// In-memory fallback for Vercel (ephemeral, resets per cold start)
+const inMemoryStore = { scenarios: [] };
+let memoryInitialized = false;
+
 async function ensureDataFile() {
+  if (isVercel && !memoryInitialized) {
+    // Try to load from /tmp if exists, otherwise use in-memory
+    try {
+      await fs.access(dbFilePath);
+    } catch {
+      const initial = { scenarios: [] };
+      await fs.writeFile(dbFilePath, JSON.stringify(initial, null, 2), 'utf8');
+    }
+    memoryInitialized = true;
+    return;
+  }
+  
   await fs.mkdir(dataDirectory, { recursive: true });
   try {
     await fs.access(dbFilePath);

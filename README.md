@@ -46,6 +46,26 @@ Refer to the UI fields; same keys are accepted by the API.
 - Save a scenario; confirm it appears in the list and can be loaded/deleted.
 - Generate a report; an email prompt appears and triggers a PDF download.
 
+## Deploying to Vercel
+
+### Option 1: Vercel CLI
+1. Install Vercel CLI:
+   ```bash
+   npm i -g vercel
+   ```
+2. Deploy:
+   ```bash
+   vercel
+   ```
+3. Follow prompts. Your app will be live at a Vercel URL.
+
+### Option 2: Vercel Dashboard
+1. Push your code to GitHub/GitLab/Bitbucket
+2. Go to [vercel.com](https://vercel.com) and import your repository
+3. Vercel will auto-detect the configuration and deploy
+
+**Note:** On Vercel, saved scenarios are stored in `/tmp` (ephemeral, resets on cold starts). For production, consider using Vercel KV, Vercel Postgres, or another persistent storage solution.
+
 ## Scripts
 - `npm run dev` — start server on port 3000
 - `npm start` — same as dev
